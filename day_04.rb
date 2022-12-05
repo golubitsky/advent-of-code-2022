@@ -19,7 +19,7 @@ module Parser
   end
 end
 
-module OverlappingAssighments
+module OverlappingAssignments
   extend self
 
   def count_full_overlaps(pairs_of_assighments)
@@ -58,6 +58,6 @@ if __FILE__ == $PROGRAM_NAME
   input_filepath = 'data/day_04.txt'
 
   pairs_of_assighments = Parser.pairs_of_assighments(input_filepath)
-  pp OverlappingAssighments.count_full_overlaps(pairs_of_assighments)
-  pp OverlappingAssighments.count_partial_overlaps(pairs_of_assighments)
+  pp OverlappingAssignments.count_full_overlaps(pairs_of_assighments)
+  pp OverlappingAssignments.count_partial_overlaps(pairs_of_assighments)
 end
