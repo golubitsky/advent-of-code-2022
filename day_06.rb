@@ -5,7 +5,7 @@ def start_of_packet_marker?(string)
 end
 
 def n_chars_needed_to_receive_unique_marker(datastream_buffer, marker_length:)
-  0..(datastream_buffer.length - (marker_length - 1)).times do |index|
+  0..(datastream_buffer.length - marker_length).times do |index|
     return index + marker_length if start_of_packet_marker?(datastream_buffer[index, marker_length])
   end
 end
