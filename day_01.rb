@@ -5,11 +5,10 @@ def calories_per_elf(input_filepath)
 end
 
 def n_calories_held_by(n_highest_holding_eleves:, calories_per_elf:)
-  calories_per_elf
-    .sort_by(&:sum)
-    .last(n_highest_holding_eleves)
-    .map(&:sum)
-    .sum
+  calories_per_elf.map(&:sum)
+                  .sort
+                  .last(n_highest_holding_eleves)
+                  .sum
 end
 
 if __FILE__ == $PROGRAM_NAME
