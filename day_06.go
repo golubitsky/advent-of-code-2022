@@ -22,6 +22,7 @@ func nCharsNeededToReceiveUniqueMarker(datastreamBuffer string, markerLength int
 			return i + markerLength
 		}
 	}
+
 	return 0
 }
 
