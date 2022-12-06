@@ -1,32 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 )
-
-func readLines(filepath string) []string {
-	readFile, err := os.Open(filepath)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	fileScanner := bufio.NewScanner(readFile)
-
-	fileScanner.Split(bufio.ScanLines)
-
-	var lines []string
-
-	for fileScanner.Scan() {
-		lines = append(lines, fileScanner.Text())
-	}
-
-	readFile.Close()
-
-	return lines
-}
 
 type threeHighestCalorieCounts struct {
 	first  int64
@@ -68,12 +45,8 @@ func updatedMaxThree(high threeHighestCalorieCounts, cur int64) threeHighestCalo
 	return high
 }
 
-func sum(amounts threeHighestCalorieCounts) int64 {
-	return amounts.first + amounts.second + amounts.third
-}
-
-func main() {
-	var lines = readLines("data/day_01.txt")
+func Day01() {
+	var lines = ReadLines("data/day_01.txt")
 	var threeHighest = threeHighestCalorieCountsPerElf(lines)
 	fmt.Println("elf with most calories has", threeHighest.first, "calories")
 	fmt.Println("altogether, three elves with most calories have", sum(threeHighest), "calories")

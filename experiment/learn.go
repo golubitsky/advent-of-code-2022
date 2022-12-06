@@ -55,11 +55,11 @@ func demo() {
 
 	fmt.Println(p, p.name, p.age)
 }
+
 func main() {
 	var lines = readLines("data/day_01_sample.txt")
 
 	for index, value := range lines {
 		fmt.Println(index, value)
 	}
-
 }
