@@ -76,14 +76,13 @@ module Parser
   end
 end
 
-module FSExplorer
+module FilesystemExplorer
   extend self
 
   def combined_size_of_small_directories(filesystem, max_dir_size:)
     size_by_directory(filesystem)
-      .select { |_dir_name, size| size <= max_dir_size }
-      .values
-      .sum
+      .select { |_dir, size| size <= max_dir_size }
+      .sum { |_dir, size| size }
   end
 
   def smallest_directory_to_delete(filesystem, disk_size:, total_required_unused_space:)
@@ -106,7 +105,7 @@ module FSExplorer
   def size_by_directory(filesystem)
     # not including sub-dir sizes
     sizes = filesystem.to_h do |dir_name, dir|
-      [dir_name, dir[:files].map { |_file_name, file| file[:size] }.sum]
+      [dir_name, size_of_files_directly_in_directory(dir)]
     end
 
     sizes.keys.to_h do |dir_name|
@@ -117,22 +116,31 @@ module FSExplorer
     end
   end
 
-  def size_of_directory(dir_name, sizes, filesystem)
-    size_of_this_dir = sizes[dir_name]
+  def size_of_files_directly_in_directory(dir)
+    dir[:files].sum { |_file_name, file| file[:size] }
+  end
 
-    size_of_sub_dirs = filesystem[dir_name][:sub_dirs].sum do |sub_dir_name|
+  def size_of_directory(dir_name, sizes, filesystem)
+    sizes[dir_name] + size_of_sub_dirs(dir_name, sizes, filesystem)
+  end
+
+  def size_of_sub_dirs(dir_name, sizes, filesystem)
+    filesystem[dir_name][:sub_dirs].sum do |sub_dir_name|
       size_of_directory(sub_dir_name, sizes, filesystem)
     end
-
-    size_of_this_dir + size_of_sub_dirs
   end
 end
 
 if __FILE__ == $PROGRAM_NAME
-  input_filepath = 'data/day_07.txt'
-  filesystem = Parser.parse_filesystem(input_filepath)
-  pp FSExplorer.combined_size_of_small_directories(filesystem, max_dir_size: 100_000)
-  pp FSExplorer.smallest_directory_to_delete(
-    filesystem, disk_size: 70_000_000, total_required_unused_space: 30_000_000
-  )[:size]
+  filesystem = Parser.parse_filesystem('data/day_07.txt')
+
+  pp FilesystemExplorer
+    .combined_size_of_small_directories(filesystem, max_dir_size: 100_000)
+
+  pp FilesystemExplorer
+    .smallest_directory_to_delete(
+      filesystem,
+      disk_size: 70_000_000,
+      total_required_unused_space: 30_000_000
+    )[:size]
 end
