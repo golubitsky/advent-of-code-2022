@@ -59,7 +59,7 @@ module ForestViewer
           i -= 1
         end
 
-        # look north
+        # look south
         i = row_index + 1
         while i < col_size(forest)
           south_score += 1
