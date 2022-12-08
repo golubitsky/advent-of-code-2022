@@ -15,12 +15,65 @@ module ForestViewer
     number_of_visible_trees = 0
 
     forest.each_with_index do |row, row_index|
-      row.each_with_index do |_col, col_index|
+      row.each_with_index do |_tree_height, col_index|
         number_of_visible_trees += 1 if visible?(forest, row_index, col_index)
       end
     end
 
     number_of_visible_trees
+  end
+
+  def highest_scenic_score(forest)
+    highest_scenic_score = 0
+
+    forest.each_with_index do |row, row_index|
+      row.each_with_index do |tree_height, col_index|
+        west_score = 0
+        east_score = 0
+        north_score = 0
+        south_score = 0
+        # look west
+        i = col_index - 1
+        while i >= 0
+          west_score += 1
+          break if forest[row_index][i] >= tree_height
+
+          i -= 1
+        end
+
+        # look east
+        i = col_index + 1
+        while i < row_size(forest)
+          east_score += 1
+          break if forest[row_index][i] >= tree_height
+
+          i += 1
+        end
+
+        # look north
+        i = row_index - 1
+        while i >= 0
+          north_score += 1
+          break if forest[i][col_index] >= tree_height
+
+          i -= 1
+        end
+
+        # look north
+        i = row_index + 1
+        while i < col_size(forest)
+          south_score += 1
+          break if forest[i][col_index] >= tree_height
+
+          i += 1
+        end
+
+        cur_scenic_score = [east_score, west_score, south_score, north_score].reduce(:*)
+        highest_scenic_score = cur_scenic_score if cur_scenic_score > highest_scenic_score
+      end
+    end
+
+    highest_scenic_score
   end
 
   private
@@ -43,76 +96,76 @@ module ForestViewer
   def visible_from_west?(forest, row_index, col_index)
     debug_print "visible_from_west? #{row_index} #{col_index} -> "
 
-    cur_height = forest[row_index][col_index]
+    tree_height = forest[row_index][col_index]
 
     i = col_index - 1
     while i >= 0
-      if forest[row_index][i] >= cur_height
-        debug_puts "no (cur_height: #{cur_height})"
+      if forest[row_index][i] >= tree_height
+        debug_puts "no (tree_height: #{tree_height})"
         return false
       end
 
       i -= 1
     end
 
-    debug_puts "yes (cur_height: #{cur_height})"
+    debug_puts "yes (tree_height: #{tree_height})"
     true
   end
 
   def visible_from_east?(forest, row_index, col_index)
     debug_print "visible_from_east? #{row_index} #{col_index} -> "
 
-    cur_height = forest[row_index][col_index]
+    tree_height = forest[row_index][col_index]
 
     i = col_index + 1
     while i < row_size(forest)
-      if forest[row_index][i] >= cur_height
-        debug_puts "no (cur_height: #{cur_height})"
+      if forest[row_index][i] >= tree_height
+        debug_puts "no (tree_height: #{tree_height})"
         return false
       end
 
       i += 1
     end
 
-    debug_puts "yes (cur_height: #{cur_height})"
+    debug_puts "yes (tree_height: #{tree_height})"
     true
   end
 
   def visible_from_north?(forest, row_index, col_index)
     debug_print "visible_from north? #{row_index} #{col_index} -> "
 
-    cur_height = forest[row_index][col_index]
+    tree_height = forest[row_index][col_index]
 
     i = row_index - 1
     while i >= 0
-      if forest[i][col_index] >= cur_height
-        debug_puts "no (cur_height: #{cur_height})"
+      if forest[i][col_index] >= tree_height
+        debug_puts "no (tree_height: #{tree_height})"
         return false
       end
 
       i -= 1
     end
 
-    debug_puts "yes (cur_height: #{cur_height})"
+    debug_puts "yes (tree_height: #{tree_height})"
     true
   end
 
   def visible_from_south?(forest, row_index, col_index)
     debug_print "visible_from south? #{row_index} #{col_index} -> "
 
-    cur_height = forest[row_index][col_index]
+    tree_height = forest[row_index][col_index]
 
     i = row_index + 1
     while i < col_size(forest)
-      if forest[i][col_index] >= cur_height
-        debug_puts "no (cur_height: #{cur_height})"
+      if forest[i][col_index] >= tree_height
+        debug_puts "no (tree_height: #{tree_height})"
         return false
       end
 
       i += 1
     end
 
-    debug_puts "yes (cur_height: #{cur_height})"
+    debug_puts "yes (tree_height: #{tree_height})"
     true
   end
 
@@ -133,5 +186,6 @@ if __FILE__ == $PROGRAM_NAME
                .map(&:chars)
                .map { |x| x.map(&:to_i) }
 
-  pp ForestViewer.number_of_visible_trees(forest)
+  puts ForestViewer.number_of_visible_trees(forest)
+  puts ForestViewer.highest_scenic_score(forest)
 end
