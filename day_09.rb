@@ -6,17 +6,17 @@ require 'set'
 module Parser
   extend self
 
-  def parse_head_motions_as_unit_vectors(filepath)
+  def parse_head_motions_as_individual_steps(filepath)
     File.readlines(filepath)
         .map(&:strip)
         .map(&:split)
         .map { |motion| { direction: motion[0], steps: motion[1].to_i } }
-        .flat_map { |motion| head_motion_unit_vectors(motion) }
+        .flat_map { |motion| head_motion_individual_steps(motion) }
   end
 
   private
 
-  def head_motion_unit_vectors(motion)
+  def head_motion_individual_steps(motion)
     Array.new(motion[:steps]) do
       {
         'R' => Vector[1, 0],
@@ -31,12 +31,12 @@ end
 module Solution
   extend self
 
-  def solution(head_motion_unit_vectors, knots:)
+  def solution(head_motion_individual_steps, knots:)
     knots = Array.new(knots) { Vector[0, 0] } # tail is last index
 
     visited_by_tail = Set.new
     visited_by_tail.add(knots.last)
-    head_motion_unit_vectors.each do |head_motion_vector|
+    head_motion_individual_steps.each do |head_motion_vector|
       knots[0] += head_motion_vector
 
       update_knots_after_head_move!(knots)
@@ -102,9 +102,9 @@ end
 if __FILE__ == $PROGRAM_NAME
   DRAW_STATE_FOR_DEBUGGING = false
 
-  head_motion_unit_vectors =
-    Parser.parse_head_motions_as_unit_vectors('data/day_09.txt')
+  head_motion_individual_steps =
+    Parser.parse_head_motions_as_individual_steps('data/day_09.txt')
 
-  pp Solution.solution(head_motion_unit_vectors, knots: 2)
-  pp Solution.solution(head_motion_unit_vectors, knots: 10)
+  pp Solution.solution(head_motion_individual_steps, knots: 2)
+  pp Solution.solution(head_motion_individual_steps, knots: 10)
 end
