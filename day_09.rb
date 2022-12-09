@@ -36,14 +36,13 @@ module Solution
 
     visited_by_tail = Set.new
     visited_by_tail.add(knots.last)
-    head_motion_unit_vectors.each.with_index do |head_motion_vector, index|
+    head_motion_unit_vectors.each do |head_motion_vector|
       knots[0] += head_motion_vector
-      puts "head after move #{knots[0]}"
+
       update_knots_after_head_move!(knots)
 
       visited_by_tail.add(knots.last)
-
-      puts 'tails updated; end of iteration'
+      draw_state(knots) if DRAW_STATE_FOR_DEBUGGING
     end
 
     visited_by_tail.size
@@ -62,54 +61,50 @@ module Solution
         lead_knot: lead_knot,
         follower_knot: follower_knot
       )
-      puts "after #{i + 1} updated: #{knots}"
 
       i += 1
     end
   end
 
   def follower_motion_vector(lead_knot:, follower_knot:)
-    # After each step, you'll need to update the position of the tail
-    # if the step means the head is no longer adjacent to the tail.
+    diff = lead_knot - follower_knot
 
-    case lead_knot - follower_knot
-    # If the head is ever two steps directly up, down, left, or right from the tail,
-    # the tail must also move one step in that direction so it remains close enough
-    when Vector[2, 0]
-      Vector[1, 0]
-    when Vector[-2, 0]
-      Vector[-1, 0]
-    when Vector[0, 2]
-      Vector[0, 1]
-    when Vector[0, -2]
-      Vector[0, -1]
-    # Otherwise, if the head and tail aren't touching and aren't in the same row or column,
-    # the tail always moves one step diagonally to keep up
-    when Vector[1, 2]
-      Vector[1, 1]
-    when Vector[-1, -2]
-      Vector[-1, -1]
-    when Vector[-1, 2]
-      Vector[-1, 1]
-    when Vector[1, -2]
-      Vector[1, -1]
-    when Vector[2, 1]
-      Vector[1, 1]
-    when Vector[-2, -1]
-      Vector[-1, -1]
-    when Vector[2, -1]
-      Vector[1, -1]
-    when Vector[-2, 1]
-      Vector[-1, 1]
+    if diff.map(&:abs).max <= 1
+      # After each step, you'll need to update the position of the tail
+      # if the step means the head is no longer adjacent to the tail.
+      Vector[0, 0] # in this branch it _is_ adjacent, so don't move the follower
+    elsif diff.include?(0)
+      # If the head is ever two steps directly up, down, left, or right from the tail,
+      # the tail must also move one step in that direction so it remains close enough
+      diff.map { |x| x.zero? ? 0 : x / x.abs }
     else
-      Vector[0, 0]
+      # Otherwise, if the head and tail aren't touching and aren't in the same row or column,
+      # the tail always moves one step diagonally to keep up
+      diff.map { |x| x / x.abs }
     end
+  end
+
+  def draw_state(knots)
+    rows = 5
+    cols = 6
+    dots = Array.new(rows) { Array.new(cols) { '.' } }
+    dots[0][0] = 's'
+    head, *rest = knots
+    rest.each_with_index.to_a.reverse.each do |(knot, index)|
+      dots[knot[1]][knot[0]] = (index + 1).to_s
+    end
+    dots[head[1]][head[0]] = 'H'
+    puts dots.reverse.map(&:join)
+    puts
   end
 end
 
 if __FILE__ == $PROGRAM_NAME
+  DRAW_STATE_FOR_DEBUGGING = false
+
   head_motion_unit_vectors =
-    Parser.parse_head_motions_as_unit_vectors('data/day_09_test.txt')
-  # pp Solution.solution(head_motion_unit_vectors, knots: 2)
+    Parser.parse_head_motions_as_unit_vectors('data/day_09.txt')
+
+  pp Solution.solution(head_motion_unit_vectors, knots: 2)
   pp Solution.solution(head_motion_unit_vectors, knots: 10)
 end
