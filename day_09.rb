@@ -36,11 +36,14 @@ module Solution
 
     visited_by_tail = Set.new
     visited_by_tail.add(knots.last)
-    head_motion_unit_vectors.each do |head_motion_vector|
+    head_motion_unit_vectors.each.with_index do |head_motion_vector, index|
       knots[0] += head_motion_vector
+      puts "head after move #{knots[0]}"
       update_knots_after_head_move!(knots)
 
       visited_by_tail.add(knots.last)
+
+      puts 'tails updated; end of iteration'
     end
 
     visited_by_tail.size
@@ -59,6 +62,8 @@ module Solution
         lead_knot: lead_knot,
         follower_knot: follower_knot
       )
+      puts "after #{i + 1} updated: #{knots}"
+
       i += 1
     end
   end
@@ -104,7 +109,7 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   head_motion_unit_vectors =
-    Parser.parse_head_motions_as_unit_vectors('data/day_09.txt')
-  pp Solution.solution(head_motion_unit_vectors, knots: 2)
-  # pp Solution.solution(head_motion_unit_vectors, knots: 10)
+    Parser.parse_head_motions_as_unit_vectors('data/day_09_test.txt')
+  # pp Solution.solution(head_motion_unit_vectors, knots: 2)
+  pp Solution.solution(head_motion_unit_vectors, knots: 10)
 end
