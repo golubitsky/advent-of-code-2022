@@ -18,7 +18,7 @@ module Solution
     indexes_in_right_order = []
 
     input.each_slice(2).each_with_index do |(left, right), index|
-      indexes_in_right_order << index + 1 if lists_in_right_order?(left, right) == -1
+      indexes_in_right_order << index + 1 if compare_lists(left, right) == -1
     end
 
     indexes_in_right_order.sum
@@ -31,7 +31,7 @@ module Solution
     ]
 
     sorted =
-      (packets + divider_packets).sort { |a, b| lists_in_right_order?(a, b) }
+      (packets + divider_packets).sort { |a, b| compare_lists(a, b) }
 
     divider_packets.map { |divider| sorted.index(divider) + 1 }
                    .reduce(:*)
@@ -45,7 +45,7 @@ module Solution
     a < b ? -1 : 1
   end
 
-  def lists_in_right_order?(a, b)
+  def compare_lists(a, b)
     i = 0
 
     while i < [a.size, b.size].max
@@ -53,16 +53,16 @@ module Solution
       right = b[i]
 
       sorted = if left && right
-                 if integer_and_integer?(left, right)
-                   sort_integers(left, right)
-                 elsif list_and_list?(left, right)
-                   lists_in_right_order?(left, right)
+                 if integers?(left, right)
+                   left <=> right
+                 elsif lists?(left, right)
+                   compare_lists(left, right)
                  elsif integer_and_list?(left, right)
-                   lists_in_right_order?([left], right)
+                   compare_lists([left], right)
                  elsif list_and_integer?(left, right)
-                   lists_in_right_order?(left, [right])
+                   compare_lists(left, [right])
                  else
-                   raise "unknown data #{left} #{right}"
+                   raise "unexpected data types #{left} #{right}"
                  end
                elsif right
                  -1
@@ -70,7 +70,7 @@ module Solution
                  1
                end
 
-      return sorted if sorted != 0
+      return sorted unless sorted == 0
 
       i += 1
     end
@@ -78,11 +78,11 @@ module Solution
     0
   end
 
-  def integer_and_integer?(a, b)
+  def integers?(a, b)
     a.is_a?(Integer) && b.is_a?(Integer)
   end
 
-  def list_and_list?(a, b)
+  def lists?(a, b)
     a.is_a?(Array) && b.is_a?(Array)
   end
 
