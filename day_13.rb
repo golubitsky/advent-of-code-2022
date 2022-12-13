@@ -24,15 +24,17 @@ module Solution
     indexes_in_right_order.sum
   end
 
-  def decoder_key_from_sorted_packets(input)
-    divider_packet = [[2]]
-    other_divider_packet = [[6]]
+  def decoder_key_from_sorted_packets(packets)
+    divider_packets = [
+      [[2]],
+      [[6]]
+    ]
 
-    packets = input + [divider_packet, other_divider_packet]
+    sorted =
+      (packets + divider_packets).sort { |a, b| lists_in_right_order?(a, b) }
 
-    sorted = packets.sort { |a, b| lists_in_right_order?(a, b) }
-
-    (sorted.index(divider_packet) + 1) * (sorted.index(other_divider_packet) + 1)
+    divider_packets.map { |divider| sorted.index(divider) + 1 }
+                   .reduce(:*)
   end
 
   private
