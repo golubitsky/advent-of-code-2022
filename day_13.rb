@@ -14,8 +14,8 @@ end
 module Solution
   extend self
 
-  def sum_of_packets_in_right_order(input)
-    input.each_slice(2)
+  def sum_of_packets_in_right_order(packets)
+    packets.each_slice(2)
          .map.with_index { |(a, b), i| compare_lists(a, b) == -1 ? i + 1 : 0 }
          .sum
   end
