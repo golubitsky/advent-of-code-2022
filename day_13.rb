@@ -37,15 +37,15 @@ module Solution
 
   def compare_lists(a, b)
     (0...[a.size, b.size].max).each do |i|
-      sorted = if a[i] && b[i]
-                 compare_items!(a[i], b[i])
-               elsif b[i]
-                 -1
-               elsif a[i]
-                 1
-               end
+      compared = if a[i] && b[i]
+                   compare_items!(a[i], b[i])
+                 elsif b[i]
+                   -1
+                 elsif a[i]
+                   1
+                 end
 
-      return sorted unless sorted.zero?
+      return compared unless compared.zero?
     end
 
     0
