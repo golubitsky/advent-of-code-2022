@@ -14,7 +14,7 @@ end
 module Solution
   extend self
 
-  def sum_of_packets_in_right_order(packets)
+  def sum_indexes_of_packets_in_right_order(packets)
     packets.each_slice(2)
            .map.with_index { |(a, b), i| in_right_order?(a, b) ? i + 1 : 0 }
            .sum
@@ -88,6 +88,6 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   parsed = Parser.parse('data/day_13.txt')
-  pp Solution.sum_of_packets_in_right_order(parsed)
+  pp Solution.sum_indexes_of_packets_in_right_order(parsed)
   pp Solution.decoder_key_from_sorted_packets(parsed)
 end
