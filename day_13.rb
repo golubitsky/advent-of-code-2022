@@ -48,6 +48,8 @@ module Solution
                  compare_lists([left], right)
                elsif list_and_integer?(left, right)
                  compare_lists(left, [right])
+               elsif left && right
+                 raise "unexpected data types #{left} #{right}"
                elsif right
                  -1
                elsif left
