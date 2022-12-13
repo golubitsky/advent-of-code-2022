@@ -39,12 +39,6 @@ module Solution
 
   private
 
-  def sort_integers(a, b)
-    return 0 if a == b
-
-    a < b ? -1 : 1
-  end
-
   def compare_lists(a, b)
     i = 0
 
