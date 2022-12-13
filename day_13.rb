@@ -16,8 +16,8 @@ module Solution
 
   def sum_of_packets_in_right_order(packets)
     packets.each_slice(2)
-         .map.with_index { |(a, b), i| compare_lists(a, b) == -1 ? i + 1 : 0 }
-         .sum
+           .map.with_index { |(a, b), i| in_right_order?(a, b) ? i + 1 : 0 }
+           .sum
   end
 
   def decoder_key_from_sorted_packets(packets)
@@ -34,6 +34,10 @@ module Solution
   end
 
   private
+
+  def in_right_order?(a, b)
+    compare_lists(a, b) == -1
+  end
 
   def compare_lists(a, b)
     (0...[a.size, b.size].max).each do |i|
