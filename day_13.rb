@@ -44,18 +44,14 @@ module Solution
       left = a[i]
       right = b[i]
 
-      sorted = if left && right
-                 if integers?(left, right)
-                   left <=> right
-                 elsif lists?(left, right)
-                   compare_lists(left, right)
-                 elsif integer_and_list?(left, right)
-                   compare_lists([left], right)
-                 elsif list_and_integer?(left, right)
-                   compare_lists(left, [right])
-                 else
-                   raise "unexpected data types #{left} #{right}"
-                 end
+      sorted = if integers?(left, right)
+                 left <=> right
+               elsif lists?(left, right)
+                 compare_lists(left, right)
+               elsif integer_and_list?(left, right)
+                 compare_lists([left], right)
+               elsif list_and_integer?(left, right)
+                 compare_lists(left, [right])
                elsif right
                  -1
                elsif left
