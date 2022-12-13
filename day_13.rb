@@ -39,6 +39,12 @@ module Solution
 
   private
 
+  def sort_integers(a, b)
+    return 0 if a == b
+
+    a < b ? -1 : 1
+  end
+
   def lists_in_right_order?(a, b)
     i = 0
 
@@ -46,49 +52,27 @@ module Solution
       left = a[i]
       right = b[i]
 
-      if left && right
-        if integer_and_integer?(left, right)
-          if left == right
-            i += 1
-            next
-          end
+      sorted = if left && right
+                 if integer_and_integer?(left, right)
+                   sort_integers(left, right)
+                 elsif list_and_list?(left, right)
+                   lists_in_right_order?(left, right)
+                 elsif integer_and_list?(left, right)
+                   lists_in_right_order?([left], right)
+                 elsif list_and_integer?(left, right)
+                   lists_in_right_order?(left, [right])
+                 else
+                   raise "unknown data #{left} #{right}"
+                 end
+               elsif right
+                 -1
+               elsif left
+                 1
+               end
 
-          return left < right ? -1 : 1
-        elsif list_and_list?(left, right)
-          inner = lists_in_right_order?(left, right)
-          if inner == 0
-            i += 1
-            next
-          else
-            return inner
-          end
+      return sorted if sorted != 0
 
-        elsif integer_and_list?(left, right)
-          inner = lists_in_right_order?([left], right)
-          if inner == 0
-            i += 1
-            next
-          else
-            return inner
-          end
-        elsif list_and_integer?(left, right)
-          inner = lists_in_right_order?(left, [right])
-          if inner == 0
-            i += 1
-            next
-          else
-            return inner
-          end
-        else
-          raise "unknown data #{left} #{right}"
-        end
-      elsif right
-        return -1
-      elsif left
-        return 1
-      else
-        raise 'unexpected condition'
-      end
+      i += 1
     end
 
     0
