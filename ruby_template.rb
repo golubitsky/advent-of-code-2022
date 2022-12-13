@@ -9,7 +9,7 @@ end
 module Solution
   extend self
 
-  def solution; end
+  def solution(input); end
 end
 
 if __FILE__ == $PROGRAM_NAME

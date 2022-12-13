@@ -6,7 +6,7 @@ day = ARGV.first
 
 File.write(
   "day_#{day}.rb",
-  File.read('ruby_template.txt').sub('DAY_NUMBER', day)
+  File.read('ruby_template.rb').sub('DAY_NUMBER', day)
 )
 
 FileUtils.touch("data/day_#{day}.txt")
