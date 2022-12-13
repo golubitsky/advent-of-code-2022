@@ -40,9 +40,7 @@ module Solution
   private
 
   def compare_lists(a, b)
-    i = 0
-
-    while i < [a.size, b.size].max
+    (0...[a.size, b.size].max).each do |i|
       left = a[i]
       right = b[i]
 
@@ -64,9 +62,7 @@ module Solution
                  1
                end
 
-      return sorted unless sorted == 0
-
-      i += 1
+      return sorted unless sorted.zero?
     end
 
     0
