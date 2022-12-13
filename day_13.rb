@@ -37,22 +37,11 @@ module Solution
 
   def compare_lists(a, b)
     (0...[a.size, b.size].max).each do |i|
-      left = a[i]
-      right = b[i]
-
-      sorted = if integers?(left, right)
-                 left <=> right
-               elsif lists?(left, right)
-                 compare_lists(left, right)
-               elsif integer_and_list?(left, right)
-                 compare_lists([left], right)
-               elsif list_and_integer?(left, right)
-                 compare_lists(left, [right])
-               elsif left && right
-                 raise "unexpected data types #{left} #{right}"
-               elsif right
+      sorted = if a[i] && b[i]
+                 compare_items!(a[i], b[i])
+               elsif b[i]
                  -1
-               elsif left
+               elsif a[i]
                  1
                end
 
@@ -60,6 +49,20 @@ module Solution
     end
 
     0
+  end
+
+  def compare_items!(a, b)
+    if integers?(a, b)
+      a <=> b
+    elsif lists?(a, b)
+      compare_lists(a, b)
+    elsif integer_and_list?(a, b)
+      compare_lists([a], b)
+    elsif list_and_integer?(a, b)
+      compare_lists(a, [b])
+    else
+      raise "unexpected data types #{a} #{b}"
+    end
   end
 
   def integers?(a, b)
