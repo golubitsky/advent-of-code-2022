@@ -14,7 +14,7 @@ end
 module Solution
   extend self
 
-  def solution(input)
+  def sum_of_packets_in_right_order(input)
     indexes_in_right_order = []
 
     input.each_slice(2).each_with_index do |(left, right), index|
@@ -111,6 +111,6 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   parsed = Parser.parse('data/day_13.txt')
-  pp Solution.solution(parsed)
+  pp Solution.sum_of_packets_in_right_order(parsed)
   pp Solution.decoder_key_from_sorted_packets(parsed)
 end
