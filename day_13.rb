@@ -15,13 +15,9 @@ module Solution
   extend self
 
   def sum_of_packets_in_right_order(input)
-    indexes_in_right_order = []
-
-    input.each_slice(2).each_with_index do |(left, right), index|
-      indexes_in_right_order << index + 1 if compare_lists(left, right) == -1
-    end
-
-    indexes_in_right_order.sum
+    input.each_slice(2)
+         .map.with_index { |(a, b), i| compare_lists(a, b) == -1 ? i + 1 : 0 }
+         .sum
   end
 
   def decoder_key_from_sorted_packets(packets)
@@ -30,11 +26,11 @@ module Solution
       [[6]]
     ]
 
-    sorted =
-      (packets + divider_packets).sort { |a, b| compare_lists(a, b) }
+    sorted = (packets + divider_packets).sort { |a, b| compare_lists(a, b) }
 
-    divider_packets.map { |divider| sorted.index(divider) + 1 }
-                   .reduce(:*)
+    divider_packets
+      .map { |divider| sorted.index(divider) + 1 }
+      .reduce(:*)
   end
 
   private
