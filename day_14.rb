@@ -17,6 +17,6 @@ module Solution
 end
 
 if __FILE__ == $PROGRAM_NAME
-  parsed = Parser.parse('data/day_DAY_NUMBER_sample.txt')
+  parsed = Parser.parse('data/day_14_sample.txt')
   pp Solution.solution(parsed)
 end
