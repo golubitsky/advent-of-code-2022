@@ -13,16 +13,26 @@ module Parser
     start = { x: 500, y: 0 }
 
     rocks = rocks(lines)
+    y_of_lowest_rock = rocks.map { |point| point[:y] }.max
 
     {
       start: start,
-      y_of_lowest_rock: rocks.map { |point| point[:y] }.max,
+      y_of_lowest_rock: y_of_lowest_rock,
       rocks: rocks,
-      resting_sand: Set.new
+      resting_sand: Set.new,
+      part_two_floor: part_two_floor(y_of_lowest_rock, rocks)
     }
   end
 
   private
+
+  def part_two_floor(y_of_lowest_rock, rocks)
+    min_x, max_x = rocks.map { |point| point[:x] }.minmax
+
+    # HACK: for infinite floor, use large x values
+    [*(min_x - 1000)..(max_x + 1000)].map { |x| { x: x, y: y_of_lowest_rock + 2 } }
+                                     .to_set
+  end
 
   def points_between(point_one, point_two)
     if point_one[:x] == point_two[:x]
@@ -52,10 +62,10 @@ end
 module Solution
   extend self
 
-  def solution(state)
+  def solution(state, use_floor:)
     loop do
-      resting_point = pour_unit_of_sand!(state)
-      break if falling_into_the_endless_void?(resting_point, state)
+      resting_point = pour_unit_of_sand!(state, use_floor)
+      break if reached_void_or_floor?(resting_point, state, use_floor)
     end
 
     state[:resting_sand].count
@@ -63,15 +73,23 @@ module Solution
 
   private
 
-  def pour_unit_of_sand!(state)
+  def reached_void_or_floor?(sand, state, use_floor)
+    if use_floor
+      sand == state[:start] && can_come_to_rest_without_floor?(sand, state)
+    else
+      falling_into_the_endless_void?(sand, state)
+    end
+  end
+
+  def pour_unit_of_sand!(state, use_floor)
     sand = state[:start].dup
 
     loop do
-      if can_come_to_rest?(sand, state)
+      if can_come_to_rest?(sand, state, use_floor)
         state[:resting_sand].add(sand)
-        break
+        return sand
       elsif falling_into_the_endless_void?(sand, state)
-        break
+        return sand
       elsif empty?(down(sand), state)
         sand = down(sand)
       elsif empty?(down_left(sand), state)
@@ -79,10 +97,9 @@ module Solution
       elsif empty?(down_right(sand), state)
         sand = down_right(sand)
       else
-        raise 'hi'
+        raise 'unknown condition'
       end
     end
-    sand
   end
 
   def empty?(point, state)
@@ -118,7 +135,23 @@ module Solution
     }
   end
 
-  def can_come_to_rest?(point, state)
+  def can_come_to_rest?(point, state, use_floor)
+    if use_floor
+      can_come_to_rest_with_floor?(point, state)
+    else
+      can_come_to_rest_without_floor?(point, state)
+    end
+  end
+
+  def can_come_to_rest_with_floor?(point, state)
+    [down(point), down_left(point), down_right(point)].all? do |next_point|
+      state[:rocks].include?(next_point) ||
+        state[:resting_sand].include?(next_point) ||
+        state[:part_two_floor].include?(next_point)
+    end
+  end
+
+  def can_come_to_rest_without_floor?(point, state)
     [down(point), down_left(point), down_right(point)].all? do |next_point|
       state[:rocks].include?(next_point) ||
         state[:resting_sand].include?(next_point)
@@ -131,6 +164,10 @@ module Solution
 end
 
 if __FILE__ == $PROGRAM_NAME
-  parsed = Parser.parse('data/day_14.txt')
-  pp Solution.solution(parsed)
+  filepath = 'data/day_14.txt'
+  state = Parser.parse(filepath)
+  pp Solution.solution(state, use_floor: false)
+
+  state = Parser.parse(filepath)
+  pp Solution.solution(state, use_floor: true)
 end
