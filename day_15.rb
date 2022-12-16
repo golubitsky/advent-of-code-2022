@@ -24,10 +24,64 @@ module Parser
   end
 end
 
+module PartTwo
+  def part_two(state:, max_x_or_y:)
+    # answer must be one of these:
+    counts = Hash.new(0)
+
+    coordinates_of_all_manhattan_edges(
+      state, add_one_to_manhattan_distance: true, counts: counts, max_x_or_y: max_x_or_y
+    )
+
+    counts.sort_by { |_k, v| v }
+          .last(20)
+          .map{|(point, count)| "#{point} #{count} #{tuning_frequency(point)}" }
+  end
+
+  def tuning_frequency(point)
+    point[:x] * 4_000_000 + point[:y]
+  end
+
+  def coordinates_of_all_manhattan_edges(state, counts:, max_x_or_y:, add_one_to_manhattan_distance: false)
+    state.each do |sensor:, closest_beacon:|
+      debug_puts "\nsensor #{sensor} closest #{closest_beacon}"
+      distance = manhattan_distance(sensor, closest_beacon)
+      distance += 1 if add_one_to_manhattan_distance
+
+      coordinates_of_edges_at_manhattan_distance(sensor, distance, counts, max_x_or_y)
+    end
+    #  .tap do |edge_points|
+    #    debug_puts "n edge points=#{edge_points.size}", indent = 1
+    #    debug_puts "edge points=#{edge_points}", indent = 1
+    #  end
+  end
+
+  def coordinates_of_edges_at_manhattan_distance(sensor, manhattan_distance, counts, max_x_or_y)
+    debug_puts "evaluating m_d=#{manhattan_distance}", indent = 1
+
+    [*0..manhattan_distance].each do |x|
+      [
+        { x: sensor[:x] + x, y: sensor[:y] + (manhattan_distance - x) },
+        { x: sensor[:x] + x, y: sensor[:y] - (manhattan_distance - x) },
+        { x: sensor[:x] - x, y: sensor[:y] + (manhattan_distance - x) },
+        { x: sensor[:x] - x, y: sensor[:y] - (manhattan_distance - x) }
+      ].each do |point|
+        next if point[:x] > max_x_or_y
+        next if point[:x].negative?
+        next if point[:y] > max_x_or_y
+        next if point[:y].negative?
+
+        counts[point] += 1
+      end
+    end
+  end
+end
+
 module Solution
+  extend PartTwo
   extend self
 
-  def solution(state:, target_y:)
+  def part_one(state:, target_y:)
     beacon_cannot_be_at = Set.new
     beacons = state.map { |row| row[:closest_beacon] }.to_set
 
@@ -88,7 +142,23 @@ module Solution
 end
 
 if __FILE__ == $PROGRAM_NAME
-  DEBUG_PUTS_ENABLED = false
+  DEBUG_PUTS_ENABLED = true
+
+  # part 1
+  # sample
+  # parsed = Parser.parse('data/day_15_sample.txt')
+  # pp Solution.part_one(state: parsed, target_y: 10)
+
+  # solution
+  # parsed = Parser.parse('data/day_15.txt')
+  # pp Solution.part_one(state: parsed, target_y: 2000000) # 4876693
+
+  # part 2
+  # sample
+  parsed = Parser.parse('data/day_15_sample.txt')
+  pp Solution.part_two(state: parsed, max_x_or_y: 20)
+
+  # solution
   parsed = Parser.parse('data/day_15.txt')
-  # pp Solution.solution(state: parsed, target_y: 2000000) # 4876693
+  pp Solution.part_two(state: parsed, max_x_or_y: 4_000_000)
 end
