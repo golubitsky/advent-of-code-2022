@@ -109,7 +109,8 @@ module Solution
         end
       end
 
-      highest_rock_y = [highest_y(rock), highest_rock_y].max
+      # highest rock is always last
+      highest_rock_y = [rock.last[1], highest_rock_y].max
     end
     # puts drawn(stopped_rocks, highest_y_to_draw: 20)
     highest_rock_y + 1 # convert y-coord from 0- to 1-indexing
