@@ -158,18 +158,15 @@ module Solution
   end
 
   def move_left_ok?(rock, stopped_rocks)
-    rock.none? { |point| stopped_rocks.include?(point) } &&
-      rock.none? { |(x, _y)| x < LEFT_BOUNDARY }
+    rock.none? { |point| point[0] < LEFT_BOUNDARY || stopped_rocks.include?(point) }
   end
 
   def move_right_ok?(rock, stopped_rocks)
-    rock.none? { |point| stopped_rocks.include?(point) } &&
-      rock.none? { |(x, _y)| x > RIGHT_BOUNDARY }
+    rock.none? { |point| point[0] > RIGHT_BOUNDARY || stopped_rocks.include?(point) }
   end
 
   def down_one_ok?(rock, stopped_rocks)
-    rock.none? { |point| stopped_rocks.include?(point) } &&
-      rock.none? { |(_x, y)| y < BOTTOM_BOUNDARY }
+    rock.none? { |point| point[1] < BOTTOM_BOUNDARY || stopped_rocks.include?(point) }
   end
 
   def left_one(rock)
