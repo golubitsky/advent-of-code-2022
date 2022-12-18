@@ -91,32 +91,34 @@ module Solution
 
   def solution(jet_pattern, n_rocks:)
     stopped_rocks = Set.new
+    highest_rock_y = -1
     n_rocks.times do |i|
-      p i if i % 10000 == 0
-      y_bottom = highest_rock_y(stopped_rocks) + 4
+      p i if i % 10_000 == 0
+      y_bottom = highest_rock_y + 4
       rock = rock_generator(i).call(y_bottom)
-      debug_p rock
       until stopped?(rock, stopped_rocks)
         jet = jet_pattern.next
+
         rock = apply_jet(jet, rock, stopped_rocks)
 
-        if can_descend?(rock, stopped_rocks)
-          debug_puts 'descend'
-          rock = descended_one(rock)
+        down_one = descended_one(rock)
+        if down_one_ok?(down_one, stopped_rocks)
+          rock = down_one
         else
-          debug_puts 'stop'
           stop_rock(rock, stopped_rocks)
         end
       end
+
+      highest_rock_y = [highest_y(rock), highest_rock_y].max
     end
     # puts drawn(stopped_rocks, highest_y_to_draw: 20)
-    highest_rock_y(stopped_rocks) + 1 # convert y-coord from 0- to 1-indexing
+    highest_rock_y + 1 # convert y-coord from 0- to 1-indexing
   end
 
   private
 
-  def highest_rock_y(stopped_rocks)
-    stopped_rocks.empty? ? -1 : stopped_rocks.map { |(_x, y)| y }.max
+  def highest_y(rock)
+    rock.map { |(_x, y)| y }.max
   end
 
   def drawn(stopped_rocks, highest_y_to_draw:)
@@ -137,19 +139,17 @@ module Solution
   def apply_jet(jet, rock, stopped_rocks)
     case jet
     when :left
-      if can_jet_left?(rock, stopped_rocks)
-        debug_puts 'jet left'
-        left_one(rock)
+      left_one = left_one(rock)
+      if move_left_ok?(left_one, stopped_rocks)
+        left_one
       else
-        debug_puts 'cannot jet left'
         rock
       end
     when :right
-      if can_jet_right?(rock, stopped_rocks)
-        debug_puts 'jet right'
-        right_one(rock)
+      right_one = right_one(rock)
+      if move_right_ok?(right_one, stopped_rocks)
+        right_one
       else
-        debug_puts 'cannot jet right'
         rock
       end
     else
@@ -157,25 +157,19 @@ module Solution
     end
   end
 
-  def can_jet_left?(rock, stopped_rocks)
-    moved = left_one(rock)
-
-    moved.none? { |point| stopped_rocks.include?(point) } &&
-      moved.none? { |(x, _y)| x < LEFT_BOUNDARY }
+  def move_left_ok?(rock, stopped_rocks)
+    rock.none? { |point| stopped_rocks.include?(point) } &&
+      rock.none? { |(x, _y)| x < LEFT_BOUNDARY }
   end
 
-  def can_jet_right?(rock, stopped_rocks)
-    moved = right_one(rock)
-
-    moved.none? { |point| stopped_rocks.include?(point) } &&
-      moved.none? { |(x, _y)| x > RIGHT_BOUNDARY }
+  def move_right_ok?(rock, stopped_rocks)
+    rock.none? { |point| stopped_rocks.include?(point) } &&
+      rock.none? { |(x, _y)| x > RIGHT_BOUNDARY }
   end
 
-  def can_descend?(rock, stopped_rocks)
-    moved = descended_one(rock)
-
-    moved.none? { |point| stopped_rocks.include?(point) } &&
-      moved.none? { |(_x, y)| y < BOTTOM_BOUNDARY }
+  def down_one_ok?(rock, stopped_rocks)
+    rock.none? { |point| stopped_rocks.include?(point) } &&
+      rock.none? { |(_x, y)| y < BOTTOM_BOUNDARY }
   end
 
   def left_one(rock)
