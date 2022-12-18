@@ -96,16 +96,29 @@ module Solution
       p i if i % 10_000 == 0
       y_bottom = highest_rock_y + 4
       rock = rock_generator(i).call(y_bottom)
-      until stopped?(rock, stopped_rocks)
-        jet = jet_pattern.next
-
-        rock = apply_jet(jet, rock, stopped_rocks)
-
+      is_stopped = false
+      until is_stopped
+        rock = if jet_pattern.next == :left
+                 left_one = left_one(rock)
+                 if move_left_ok?(left_one, stopped_rocks)
+                   left_one
+                 else
+                   rock
+                 end
+               else
+                 right_one = right_one(rock)
+                 if move_right_ok?(right_one, stopped_rocks)
+                   right_one
+                 else
+                   rock
+                 end
+               end
         down_one = descended_one(rock)
         if down_one_ok?(down_one, stopped_rocks)
           rock = down_one
         else
           stop_rock(rock, stopped_rocks)
+          is_stopped = true
         end
       end
 
@@ -137,27 +150,6 @@ module Solution
     output.reverse.map(&:join)
   end
 
-  def apply_jet(jet, rock, stopped_rocks)
-    case jet
-    when :left
-      left_one = left_one(rock)
-      if move_left_ok?(left_one, stopped_rocks)
-        left_one
-      else
-        rock
-      end
-    when :right
-      right_one = right_one(rock)
-      if move_right_ok?(right_one, stopped_rocks)
-        right_one
-      else
-        rock
-      end
-    else
-      raise 'unknown jet'
-    end
-  end
-
   def move_left_ok?(rock, stopped_rocks)
     rock.none? { |point| point[0] < LEFT_BOUNDARY || stopped_rocks.include?(point) }
   end
@@ -180,10 +172,6 @@ module Solution
 
   def descended_one(rock)
     rock.map { |(x, y)| [x, y - 1] }
-  end
-
-  def stopped?(rock, stopped_rocks)
-    rock.all? { |point| stopped_rocks.include?(point) }
   end
 
   def stop_rock(rock, stopped_rocks)
