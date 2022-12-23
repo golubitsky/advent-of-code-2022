@@ -1,5 +1,8 @@
+# AllCops:
+#   NewCops: enable
+
 AllCops:
-  NewCops: enable
+  DisabledByDefault: true
 
 Metrics/MethodLength:
   Max: 20
