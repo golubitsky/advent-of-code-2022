@@ -75,6 +75,10 @@ if __FILE__ == $PROGRAM_NAME
   pp Solution.part_one(parsed)
 
   i = 3_665_520_865_940
+  i = 3_665_520_865_941
+  i = 3_665_520_865_942
+  i = 3_665_520_865_943
+  # i = 3_099_532_691_302
   parsed = Parser.parse('data/day_21.txt')
   result = Solution.part_two(parsed, humn_value: i)
   p result.map(&:to_s).map(&:length)
