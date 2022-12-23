@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Parser
+module Parser # rubocop:disable Metrics/ModuleLength
   extend self
 
   def parse(filepath)
@@ -29,14 +29,12 @@ module Parser
       parsed_maze.each_with_object({}) do |(pos, value), obj|
         obj[pos] = {
           cell: value,
-          # TODO: WIP edge? is a misnomer; it's supposed to precompute
-          # - the destination pos
-          # - the destination direction
-          # for every edge cell. That should make traversal simple.
-          up: edge?(pos, side_by_pos, cube_size) ? 'edge' : :up,
-          right: '',
-          down: '',
-          left: ''
+          **%i[up down left right].to_h do |direction|
+            [
+              direction,
+              pos_and_direction(pos, side_by_pos, cube_size, parsed_maze, direction)
+            ]
+          end
         }
       end
     else
@@ -44,7 +42,9 @@ module Parser
     end
   end
 
-  def edge?(pos, side_by_pos, cube_size)
+  # From the pos, in any direction (up down left right), the resulting
+  # pos and direction.
+  def pos_and_direction(pos, side_by_pos, cube_size, _parsed_maze, direction)
     x, y = pos
     cube_side_x = x / cube_size
     cube_side_y = y / cube_size
@@ -59,7 +59,8 @@ module Parser
       [2, 2] => 5,
       [3, 2] => 6
     }
-    p "#{side_by_pos[pos]} #{cube_pos}"
+    p "side #{side_by_pos[pos]}: #{cube_pos.join(',')}"
+    { pos: pos, direction: direction }
   end
 
   def full_cube_sides(_parsed_maze, _max_x, _max_y, _cube_size)
