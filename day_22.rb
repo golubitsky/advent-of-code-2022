@@ -6,16 +6,86 @@ module Parser
   def parse(filepath)
     maze, path = File.read(filepath).split("\n\n")
 
+    metadata = metadata(maze)
+    parsed_maze = parsed_maze(maze)
+
     {
       # highest/first line on screen will be y=0
       # lowest/last line on screen will be y=maze.size - 1
-      **metadata(maze),
-      maze: parsed_maze(maze),
-      path: parsed_path(path)
+      **metadata,
+      maze: parsed_maze,
+      path: parsed_path(path),
+      cube_maze: cube_sides(parsed_maze, metadata[:max_x], metadata[:max_y], filepath)
     }
   end
 
   private
+
+  def cube_sides(parsed_maze, max_x, max_y, filepath)
+    if filepath.include?('sample')
+      cube_size = 4
+
+      side_by_pos = sample_cube_sides(parsed_maze, max_x, max_y, cube_size)
+      parsed_maze.each_with_object({}) do |(pos, value), obj|
+        obj[pos] = {
+          cell: value,
+          # TODO: WIP edge? is a misnomer; it's supposed to precompute
+          # - the destination pos
+          # - the destination direction
+          # for every edge cell. That should make traversal simple.
+          up: edge?(pos, side_by_pos, cube_size) ? 'edge' : :up,
+          right: '',
+          down: '',
+          left: ''
+        }
+      end
+    else
+      full_cube_sides(parsed_maze, max_x, max_y, filepath)
+    end
+  end
+
+  def edge?(pos, side_by_pos, cube_size)
+    x, y = pos
+    cube_side_x = x / cube_size
+    cube_side_y = y / cube_size
+    cube_pos_x = x % cube_size
+    cube_pos_y = y % cube_size
+    cube_pos = [x % cube_size, y % cube_size]
+    {
+      [2, 0] => 1,
+      [0, 1] => 2,
+      [1, 1] => 3,
+      [2, 1] => 4,
+      [2, 2] => 5,
+      [3, 2] => 6
+    }
+    p "#{side_by_pos[pos]} #{cube_pos}"
+  end
+
+  def full_cube_sides(_parsed_maze, _max_x, _max_y, _cube_size)
+    cube_size = 50
+  end
+
+  def sample_cube_sides(parsed_maze, max_x, max_y, cube_size)
+    sides = {}
+    (0..max_y).each do |y|
+      (0..max_x).each do |x|
+        next unless parsed_maze[[x, y]]
+
+        cube_side_x = x / cube_size
+        cube_side_y = y / cube_size
+        sides[[x, y]] = {
+          [2, 0] => 1,
+          [0, 1] => 2,
+          [1, 1] => 3,
+          [2, 1] => 4,
+          [2, 2] => 5,
+          [3, 2] => 6
+        }.fetch([cube_side_x, cube_side_y])
+      end
+    end
+    sides
+  end
 
   def metadata(maze)
     lines = maze.split("\n")
@@ -214,6 +284,7 @@ module Solution
 end
 
 if __FILE__ == $PROGRAM_NAME
-  parsed = Parser.parse('data/day_22.txt')
-  pp Solution.solution(parsed)
+  parsed = Parser.parse('data/day_22_sample.txt')
+  pp parsed[:cube_maze]
+  # pp Solution.solution(parsed)
 end
