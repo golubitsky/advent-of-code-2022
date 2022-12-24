@@ -157,30 +157,23 @@ module Solution
 
     minute = 0
     loop do
-      debug_puts "\n minute #{minute}"
       Draw.draw(valley, walls, minmax, clear: true)
 
       break if minute == 18
 
-      debug_print 'cur valley: '
-      debug_p valley
-
-      current_hash = valley_hash(valley)
-
-      debug_print 'cur hash: '
-
-      debug_p current_hash
-
-      valley_cache[current_hash] ||= next_valley(valley, walls, minmax)
-      valley = valley_cache[current_hash]
-
-      debug_print 'next valley: '
-      debug_p valley
+      valley, valley_cache =
+        memoized_next_valley(valley, walls, minmax, valley_cache)
 
       minute += 1
-      # sleep(0.3)
+      sleep(0.1)
     end
     nil
+  end
+
+  def memoized_next_valley(valley, walls, minmax, cache)
+    current_hash = valley_hash(valley)
+    cache[current_hash] ||= next_valley(valley, walls, minmax)
+    [cache[current_hash], cache]
   end
 
   def valley_hash(valley)
