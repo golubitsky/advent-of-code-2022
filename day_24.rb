@@ -185,8 +185,9 @@ module Solution
 
   def valley_hash(valley)
     sorted = valley.transform_keys(&:to_a).sort_by { |k, _v| k }.to_h
-    sorted.keys.map { |x| "#{x[0]}#{x[1]}" }.join +
-      sorted.values.map { |bl| bl.map { |v| CHAR_BY_DIRECTION[v] }.join }.join
+    sorted.map do |(x, y), blizzards|
+      "#{x}#{y}#{blizzards.map { |bl| CHAR_BY_DIRECTION[bl] }.join}"
+    end.join.to_sym
   end
 
   private
