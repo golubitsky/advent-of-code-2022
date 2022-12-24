@@ -133,8 +133,9 @@ module Draw
     elsif valley_contents.count == 1
       CHAR_BY_DIRECTION[valley_contents.first]
     elsif valley_contents.count > 1
-      valley_contents.count > 1
       valley_contents.count
+    else
+      '.'
     end
   end
 end
@@ -152,8 +153,13 @@ module Solution
   def solution(start_pos:, valley:, walls:, minmax:)
     valley_cache = {}
 
-    loop do |x|
-      debug_puts "\n iteration #{x}"
+    minute = 0
+    loop do
+      debug_puts "\n minute #{minute}"
+      Draw.draw(valley, walls, minmax, clear: true)
+
+      break if minute == 18
+
       debug_print 'cur valley: '
       debug_p valley
 
@@ -169,8 +175,8 @@ module Solution
       debug_print 'next valley: '
       debug_p valley
 
-      Draw.draw(valley, walls, minmax, clear: true)
-      sleep(0.3)
+      minute += 1
+      # sleep(0.3)
     end
     nil
   end
