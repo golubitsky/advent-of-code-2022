@@ -25,6 +25,13 @@ module Constants
   }.freeze
 
   CHAR_BY_DIRECTION = DIRECTION_BY_CHAR.invert
+
+  VECTOR_BY_DIRECTION = {
+    up: [0, 1],
+    right: [1, 0],
+    down: [0, -1],
+    left: [-1, 0]
+  }.transform_values { |x_y| Vector[*x_y] }
 end
 
 module Parser
@@ -141,12 +148,7 @@ module Draw
 end
 
 module Solution
-  VECTOR_BY_DIRECTION = {
-    up: [0, 1],
-    right: [1, 0],
-    down: [0, -1],
-    left: [-1, 0]
-  }.transform_values { |x_y| Vector[*x_y] }
+  include Constants
 
   extend self
 
@@ -184,7 +186,7 @@ module Solution
   def valley_hash(valley)
     sorted = valley.transform_keys(&:to_a).sort_by { |k, _v| k }.to_h
     sorted.keys.map { |x| "#{x[0]}#{x[1]}" }.join +
-      sorted.values.map { |bl| bl.map { |v| { left: 'l', right: 'r', up: 'u', down: 'd' }[v] }.join }.join
+      sorted.values.map { |bl| bl.map { |v| CHAR_BY_DIRECTION[v] }.join }.join
   end
 
   private
