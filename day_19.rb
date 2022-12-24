@@ -29,18 +29,31 @@ module Parser
   end
 end
 
-module Solution
-  extend self
+class Solution
 
+  def initialize
+    # this is just for one, but will have to do best out of all blueprints
+    @best = 1
+  end
   def solution(blueprints)
+    n_minutes = 24
+
     blueprints.each do |blueprint|
-      simulate(blueprint)
+      simulate(blueprint, n_minutes)
       exit
     end
   end
 
   def simulate(blueprint)
+    counts = {
+      ore: 1,
+      clay: 0,
+      obsidian: 0,
+      geode: 0
+    }
     pp blueprint
+    n_minutes.times do | minute|
+    end
   end
 end
 
