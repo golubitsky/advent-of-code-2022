@@ -45,7 +45,7 @@ module Parser
 
     {
 
-      start_pos: start_pos(unparsed),
+      **start_and_goal(unparsed),
       **v_and_w,
       minmax: {
         x: minmax_x(v_and_w[:walls]),
@@ -64,11 +64,13 @@ module Parser
     walls.map { |coord| coord[1] }.minmax
   end
 
-  def start_pos(unparsed)
-    hardcoded_x = 1
-    hardcoded_y = unparsed.split("\n").count - 1
+  def start_and_goal(unparsed)
+    lines = unparsed.split("\n")
 
-    Vector[hardcoded_x, hardcoded_y]
+    {
+      start: Vector[1, lines.count - 1],
+      goal: Vector[lines.last.length - 2, 0]
+    }
   end
 
   def direction_by_char(char)
@@ -112,7 +114,7 @@ module Draw
   include Constants
   extend self
 
-  def draw(valley, walls, minmax, clear: false)
+  def draw(cur_pos, valley, walls, minmax, clear: false)
     system('clear') if clear
 
     min_x, max_x = minmax[:x]
@@ -121,7 +123,7 @@ module Draw
     lines = []
 
     (min_y..max_y).each do |y|
-      line = (min_x..max_x).map { |x| char(x, y, valley, walls) }
+      line = (min_x..max_x).map { |x| char(x, y, valley, walls, cur_pos) }
       line << ' '
       line << y.to_s
       lines << line.join
@@ -129,10 +131,12 @@ module Draw
     puts lines.reverse
   end
 
-  def char(x, y, valley, walls)
-    return '#' if walls.include?(Vector[x, y])
+  def char(x, y, valley, walls, cur_pos)
+    v = Vector[x, y]
+    return 'E' if v == cur_pos
+    return '#' if walls.include?(v)
 
-    valley_contents = valley[Vector[x, y]]
+    valley_contents = valley[v]
     return '.' unless valley_contents
 
     if walls.include?(Vector[x, y])
@@ -147,33 +151,129 @@ module Draw
   end
 end
 
-module Solution
+module Solution # rubocop:disable Metrics/ModuleLength
   include Constants
 
   extend self
 
-  def solution(start_pos:, valley:, walls:, minmax:)
-    valley_cache = {}
-
-    minute = 0
-    loop do
-      Draw.draw(valley, walls, minmax, clear: true)
-
-      break if minute == 18
-
-      valley, valley_cache =
-        memoized_next_valley(valley, walls, minmax, valley_cache)
-
-      minute += 1
-      sleep(0.1)
-    end
-    nil
+  def solution(start:, goal:, valley:, walls:, minmax:)
+    bfs(start, goal, valley, walls, minmax)
   end
 
-  def memoized_next_valley(valley, walls, minmax, cache)
-    current_hash = valley_hash(valley)
-    cache[current_hash] ||= next_valley(valley, walls, minmax)
-    [cache[current_hash], cache]
+  private
+
+  def pause
+    require 'io/console'
+    puts 'press c to continue'
+    return if $stdin.getch == 'c'
+
+    exit
+  end
+
+  # Algorithm
+  #   At each minute
+  #     update valley
+  #     each adjacent pos
+  #       add_to_queue(pos, valley) if unexplored(pos, valley)
+  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
+  def bfs(start, goal, valley, walls, minmax)
+    next_valley_hash_by_current_hash = {} # only for valley-compute performance; not part of BFS
+    valley_by_hash = {} # only for valley-compute performance; not part of BFS
+
+    q = Queue.new
+    parents = {} # to trace path back to start when at goal
+    explored = Set.new
+
+    explored.add(start)
+
+    # current_hash = valley_hash(valley)
+    # next_valley_hash_by_current_hash[current_hash] ||= next_valley(valley, walls, minmax)
+    # valley = next_valley_hash_by_current_hash[current_hash]
+
+    h = valley_hash(valley)
+    valley_by_hash[h] = valley
+    start_state = [start, h]
+    q.push(start_state)
+
+    until q.empty?
+      state = q.shift
+      cur_pos, valley_hash = state
+      # puts "\nexploring #{state}"
+
+      return trace_path_back(from: state, to: start_state, parents: parents) if cur_pos == goal
+
+      # precompute to make next valley available for future exploration
+      unless next_valley_hash_by_current_hash[valley_hash]
+        valley = valley_by_hash[valley_hash]
+        next_valley = next_valley(valley, walls, minmax)
+        next_valley_hash = valley_hash(next_valley)
+
+        valley_by_hash[next_valley_hash] = next_valley
+        # p "next of #{valley_hash} computed as #{next_valley_hash}"
+        next_valley_hash_by_current_hash[valley_hash] = next_valley_hash
+      end
+
+      # advance blizzard
+      next_valley_hash = next_valley_hash_by_current_hash[valley_hash]
+      next_valley = valley_by_hash[next_valley_hash]
+      # puts "next valley #{next_valley}"
+
+      # print "\n"
+      # print 'next valley: '
+      # pp next_valley
+      # Draw.draw(cur_pos, next_valley, walls, minmax, clear: false)
+      # print 'cur pos: '
+      # p cur_pos
+      # print 'adjacents: '
+      # pp open_adjacent_positions(next_valley, walls, minmax, cur_pos)
+      # pause
+
+      # Draw.draw(cur_pos, next_valley, walls, minmax, clear: false)
+
+      open_adjacent_positions(next_valley, walls, minmax, cur_pos).each do |adj_pos|
+        next_state = [adj_pos, next_valley_hash]
+
+        # puts "can go to #{next_state}"
+
+        next if explored.include?(next_state)
+
+        # puts "adding to q"
+
+        explored.add(next_state)
+        parents[next_state] = state
+        q.push(next_state)
+      end
+    end
+    raise 'no path found'
+  end
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
+
+  def trace_path_back(from:, to:, parents:)
+    p 'tracing path'
+    step_count = 0
+    cur = from
+    while cur != to
+      cur = parents[cur]
+      step_count += 1
+    end
+    step_count
+  end
+
+  def open_adjacent_positions(valley, walls, minmax, pos)
+    VECTOR_BY_DIRECTION
+      .values.push(Vector[0, 0]) # staying in place is an option
+      .map { |v| Vector[*(pos + v)] }
+      .reject { |v| walls.include?(v) || (valley.include?(v) && valley[v].any?) }
+      .reject { |v| out_of_bounds?(v, minmax) }
+  end
+
+  def out_of_bounds?(pos, minmax)
+    pos[0] < minmax[:y].first ||
+      pos[1] > minmax[:y].last ||
+      pos[0] < minmax[:x].first ||
+      pos[1] > minmax[:x].last
   end
 
   def valley_hash(valley)
@@ -182,8 +282,6 @@ module Solution
       "#{x}#{y}#{blizzards.map { |bl| CHAR_BY_DIRECTION[bl] }.join}"
     end.join.to_sym
   end
-
-  private
 
   def next_valley(valley, walls, minmax)
     # the construction Hash.new { |h, k| h[k] = [] }
@@ -230,6 +328,6 @@ module Solution
 end
 
 if __FILE__ == $PROGRAM_NAME
-  parsed = Parser.parse('data/day_24_sample.txt')
+  parsed = Parser.parse('data/day_24.txt')
   pp Solution.solution(**parsed)
 end
