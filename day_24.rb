@@ -156,8 +156,28 @@ module Solution # rubocop:disable Metrics/ModuleLength
 
   extend self
 
-  def solution(start:, goal:, valley:, walls:, minmax:)
-    bfs(start, goal, valley, walls, minmax)
+  def part_one(start:, goal:, valley:, walls:, minmax:)
+    path, *_rest_ignored = bfs(start, goal, valley, walls, minmax)
+    path
+  end
+
+  # there and back again
+  def part_two(start:, goal:, valley:, walls:, minmax:)
+    there, next_valley_hash_by_current_hash, valley_by_hash, valley =
+      bfs(start, goal, valley, walls, minmax)
+
+    back, _, _, valley =
+      bfs(goal, start, valley, walls, minmax,
+          next_valley_hash_by_current_hash: next_valley_hash_by_current_hash,
+          valley_by_hash: valley_by_hash)
+
+    again, =
+      bfs(start, goal, valley, walls, minmax,
+          next_valley_hash_by_current_hash: next_valley_hash_by_current_hash,
+          valley_by_hash: valley_by_hash)
+
+    pp there, back, again
+    there + back + again
   end
 
   private
@@ -177,9 +197,10 @@ module Solution # rubocop:disable Metrics/ModuleLength
   #       add_to_queue(pos, valley) if unexplored(pos, valley)
   # rubocop:disable Metrics/AbcSize
   # rubocop:disable Metrics/MethodLength
-  def bfs(start, goal, valley, walls, minmax)
-    next_valley_hash_by_current_hash = {} # only for valley-compute performance; not part of BFS
-    valley_by_hash = {} # only for valley-compute performance; not part of BFS
+  # rubocop:disable Metrics/CyclomaticComplexity
+  def bfs(start, goal, valley, walls, minmax, next_valley_hash_by_current_hash: nil, valley_by_hash: nil)
+    next_valley_hash_by_current_hash ||= {} # only for valley-compute performance; not part of BFS
+    valley_by_hash ||= {} # only for valley-compute performance; not part of BFS
 
     q = Queue.new
     parents = {} # to trace path back to start when at goal
@@ -201,7 +222,10 @@ module Solution # rubocop:disable Metrics/ModuleLength
       cur_pos, valley_hash = state
       # puts "\nexploring #{state}"
 
-      return trace_path_back(from: state, to: start_state, parents: parents) if cur_pos == goal
+      if cur_pos == goal
+        path = trace_path_back(from: state, to: start_state, parents: parents)
+        return [path, next_valley_hash_by_current_hash, valley_by_hash, valley_by_hash[valley_hash]]
+      end
 
       # precompute to make next valley available for future exploration
       unless next_valley_hash_by_current_hash[valley_hash]
@@ -247,11 +271,11 @@ module Solution # rubocop:disable Metrics/ModuleLength
     end
     raise 'no path found'
   end
+  # rubocop:enable Metrics/CyclomaticComplexity
   # rubocop:enable Metrics/AbcSize
   # rubocop:enable Metrics/MethodLength
 
   def trace_path_back(from:, to:, parents:)
-    p 'tracing path'
     step_count = 0
     cur = from
     while cur != to
@@ -329,5 +353,6 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   parsed = Parser.parse('data/day_24.txt')
-  pp Solution.solution(**parsed)
+  # pp Solution.part_one(**parsed)
+  pp Solution.part_two(**parsed)
 end
