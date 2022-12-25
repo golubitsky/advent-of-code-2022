@@ -13,7 +13,7 @@ module Parser
   # Hash robot => [{material:, cost:}]
   def blueprint(line)
     scanned = line.split(/:|\./).drop(1)
-                  .map { |x| x.scan(/ore|clay|obsidian|geode|\d+/) }
+                  .map { |x| x.scan(/geode|ore|clay|obsidian|\d+/) }
                   .reject(&:empty?)
 
     scan_by_robot = scanned.to_h { |x| [x.first, x.drop(1)] }
@@ -33,36 +33,34 @@ module Solution
   extend self
 
   def solution(blueprints)
-    minutes_left = 24
+    minutes_left = 10
 
-    blueprints.each do |blueprint|
+    blueprints[1..].each do |blueprint|
       ore_counts = {
+        geode: 0,
         ore: 0,
         clay: 0,
-        obsidian: 0,
-        geode: 0
+        obsidian: 0
       }
       robot_counts = {
+        geode: 0,
         ore: 1,
         clay: 0,
-        obsidian: 0,
-        geode: 0
+        obsidian: 0
       }
       $max_counts = ore_counts.dup
-      simulate(blueprint, ore_counts, robot_counts, minutes_left)
-      pp max_counts
+
+      pp blueprint
       exit
+      simulate(blueprint, ore_counts, robot_counts, minutes_left)
+      pp $max_counts
     end
   end
 
   def simulate(blueprint, ore_counts, robot_counts, minutes_left) # rubocop:disable Metrics/AbcSize
-    # TODO: this seems to be on the right track, but not performant... actually
-    # not sure if it's working.
     if minutes_left.zero?
       if ore_counts[:geode] > $max_counts[:geode]
-        puts "max #{$max_counts[:geode]} cur #{ore_counts[:geode]}"
         $max_counts = ore_counts
-        pp $max_counts
       end
       return
     end
