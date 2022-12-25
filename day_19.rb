@@ -48,37 +48,42 @@ module Solution
         obsidian: 0,
         geode: 0
       }
-      max_counts = ore_counts.dup
-      simulate(blueprint, ore_counts, robot_counts, minutes_left, max_counts)
+      $max_counts = ore_counts.dup
+      simulate(blueprint, ore_counts, robot_counts, minutes_left)
       pp max_counts
       exit
     end
   end
 
-  def simulate(blueprint, ore_counts, robot_counts, minutes_left, max_counts)
+  def simulate(blueprint, ore_counts, robot_counts, minutes_left) # rubocop:disable Metrics/AbcSize
     # TODO: this seems to be on the right track, but not performant... actually
     # not sure if it's working.
     if minutes_left.zero?
-      ore_counts.each do |ore, count|
-        max_counts[ore] = count if count > max_counts[ore]
+      if ore_counts[:geode] > $max_counts[:geode]
+        puts "max #{$max_counts[:geode]} cur #{ore_counts[:geode]}"
+        $max_counts = ore_counts
+        pp $max_counts
       end
       return
     end
 
-    # begin construction
-    # possibilities: recurse with each of
-    next_minute = minutes_left - 1
+    # determine affordable robots before collecting ore
+    affordable_robots = affordable_robots(blueprint, ore_counts)
     ore_counts = collect_ore(ore_counts, robot_counts)
 
+    # possibilities: recurse with each of
+    next_minute = minutes_left - 1
+
     # explore building each available robot
-    affordable_robots(blueprint, ore_counts).each do |robot|
+    affordable_robots.each do |robot|
       new_ore_counts, new_robot_counts =
         build_robot(robot, blueprint[robot], ore_counts, robot_counts)
-      simulate(blueprint, new_ore_counts, new_robot_counts, next_minute, max_counts)
+
+      simulate(blueprint, new_ore_counts, new_robot_counts, next_minute)
     end
 
     # also don't build a robot
-    simulate(blueprint, ore_counts, robot_counts, next_minute, max_counts)
+    simulate(blueprint, ore_counts, robot_counts, next_minute)
   end
 
   def affordable_robots(blueprint, ore_counts)
